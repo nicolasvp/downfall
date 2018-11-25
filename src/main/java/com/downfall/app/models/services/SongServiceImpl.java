@@ -6,36 +6,36 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.downfall.app.models.dao.IGenreDao;
-import com.downfall.app.models.entity.Genre;
+import com.downfall.app.models.dao.ISongDao;
+import com.downfall.app.models.entity.Song;
 
 @Service
-public class GenreServiceImpl implements IGenreService {
+public class SongServiceImpl implements ISongService{
 
 	@Autowired
-	private IGenreDao genreDao;
+	private ISongDao songDao;
 	
 	@Override
 	@Transactional(readOnly=true)
-	public List<Genre> findAll() {
-		return (List<Genre>) genreDao.findAll();
+	public List<Song> findAll() {
+		return (List<Song>) songDao.findAll();
 	}
 
 	@Override
-	public void save(Genre genre) {
-		genreDao.save(genre);
+	public void save(Song song) {
+		songDao.save(song);
 	}
 
 	@Override
 	@Transactional(readOnly=true)
-	public Genre findOne(Long id) {
-		return genreDao.findById(id).orElse(null);
+	public Song findOne(Long id) {
+		return songDao.findById(id).orElse(null);
 	}
 
 	@Override
 	@Transactional
 	public void delete(Long id) {
-		genreDao.deleteById(id);
+		songDao.deleteById(id);
 	}
 
 }

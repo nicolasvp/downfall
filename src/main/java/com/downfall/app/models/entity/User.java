@@ -11,18 +11,19 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
 @Entity
-@Table(name="genres")
-public class Genre implements Serializable{
+@Table(name="users")
+public class User implements Serializable{
 	private static final long serialVersionUID = 1L;
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,52 +31,20 @@ public class Genre implements Serializable{
 	
 	@NotEmpty
 	private String name;
+
+	@NotEmpty
+	@Email
+	private String email;
 	
-	// Con mappedBy crea la fk en artists con el nombre genre_id(esta relacion es bidireccional)
-	@OneToMany(mappedBy = "genre", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-	private List <Artist> artists;
+	@NotEmpty
+	private String password;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	private Rol rol;
 	
 	@NotNull
 	@Column(name="created_at")
 	@Temporal(TemporalType.DATE)
 	@DateTimeFormat(pattern="dd-MM-yyyy")
 	private Date createdAt;
-	
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public Date getCreatedAt() {
-		return createdAt;
-	}
-
-	public void setCreatedAt(Date createdAt) {
-		this.createdAt = createdAt;
-	}
-
-	public static long getSerialversionuid() {
-		return serialVersionUID;
-	}
-
-	public List<Artist> getArtists() {
-		return artists;
-	}
-
-	public void setArtists(List<Artist> artists) {
-		this.artists = artists;
-	}	
-	
-	
 }

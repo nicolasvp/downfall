@@ -20,4 +20,21 @@ public class CountryServiceImpl implements ICountryService {
 	public List<Country> findAll() {
 		return (List<Country>) countryDao.findAll();
 	}
+
+	@Override
+	public void save(Country country) {
+		countryDao.save(country);
+	}
+
+	@Override
+	@Transactional(readOnly=true)
+	public Country findOne(Long id) {
+		return countryDao.findById(id).orElse(null);
+	}
+
+	@Override
+	@Transactional
+	public void delete(Long id) {
+		countryDao.deleteById(id);
+	}
 }

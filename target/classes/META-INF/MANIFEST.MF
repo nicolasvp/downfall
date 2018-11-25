@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Implementation-Title: downfall
 Implementation-Version: 0.0.1-SNAPSHOT
-Built-By: Nicolas
+Built-By: Dist0
 Implementation-Vendor-Id: com.downfall.app
 Build-Jdk: 1.8.0_191
 Implementation-URL: https://projects.spring.io/spring-boot/#/spring-bo

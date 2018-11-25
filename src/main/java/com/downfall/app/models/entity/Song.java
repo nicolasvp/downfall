@@ -2,16 +2,14 @@ package com.downfall.app.models.entity;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -21,8 +19,8 @@ import javax.validation.constraints.NotNull;
 import org.springframework.format.annotation.DateTimeFormat;
 
 @Entity
-@Table(name="genres")
-public class Genre implements Serializable{
+@Table(name="songs")
+public class Song implements Serializable{
 	private static final long serialVersionUID = 1L;
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,16 +29,17 @@ public class Genre implements Serializable{
 	@NotEmpty
 	private String name;
 	
-	// Con mappedBy crea la fk en artists con el nombre genre_id(esta relacion es bidireccional)
-	@OneToMany(mappedBy = "genre", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-	private List <Artist> artists;
+	@ManyToOne(fetch = FetchType.LAZY)
+	private Album album;
+
+	private Boolean collaboration;
 	
 	@NotNull
 	@Column(name="created_at")
 	@Temporal(TemporalType.DATE)
 	@DateTimeFormat(pattern="dd-MM-yyyy")
 	private Date createdAt;
-	
+
 	public Long getId() {
 		return id;
 	}
@@ -57,6 +56,22 @@ public class Genre implements Serializable{
 		this.name = name;
 	}
 
+	public Album getAlbum() {
+		return album;
+	}
+
+	public void setAlbum(Album album) {
+		this.album = album;
+	}
+
+	public Boolean getCollaboration() {
+		return collaboration;
+	}
+
+	public void setCollaboration(Boolean collaboration) {
+		this.collaboration = collaboration;
+	}
+
 	public Date getCreatedAt() {
 		return createdAt;
 	}
@@ -68,14 +83,4 @@ public class Genre implements Serializable{
 	public static long getSerialversionuid() {
 		return serialVersionUID;
 	}
-
-	public List<Artist> getArtists() {
-		return artists;
-	}
-
-	public void setArtists(List<Artist> artists) {
-		this.artists = artists;
-	}	
-	
-	
 }
