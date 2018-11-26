@@ -22,8 +22,8 @@ public class GenreServiceImpl implements IGenreService {
 	}
 
 	@Override
-	public void save(Genre genre) {
-		genreDao.save(genre);
+	public Genre save(Genre genre) {
+		return genreDao.save(genre);
 	}
 
 	@Override

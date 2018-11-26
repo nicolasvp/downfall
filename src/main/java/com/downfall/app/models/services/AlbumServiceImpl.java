@@ -21,8 +21,8 @@ public class AlbumServiceImpl implements IAlbumService{
 	}
 
 	@Override
-	public void save(Album album) {
-		albumDao.save(album);
+	public Album save(Album album) {
+		return albumDao.save(album);
 	}
 
 	@Override

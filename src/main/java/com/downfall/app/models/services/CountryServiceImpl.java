@@ -22,8 +22,8 @@ public class CountryServiceImpl implements ICountryService {
 	}
 
 	@Override
-	public void save(Country country) {
-		countryDao.save(country);
+	public Country save(Country country) {
+		return countryDao.save(country);
 	}
 
 	@Override

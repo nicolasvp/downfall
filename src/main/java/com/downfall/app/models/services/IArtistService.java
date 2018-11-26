@@ -8,7 +8,7 @@ import com.downfall.app.models.entity.Artist;
 public interface IArtistService {
 	public List<Artist> findAll();
 	
-	public void save(Artist artist);
+	public Artist save(Artist artist);
 	
 	public Artist findOne(Long id);
 	

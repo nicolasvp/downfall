@@ -7,7 +7,7 @@ import com.downfall.app.models.entity.User;
 public interface IUserService {
 	public List<User> findAll();
 	
-	public void save(User user);
+	public User save(User user);
 	
 	public User findOne(Long id);
 	

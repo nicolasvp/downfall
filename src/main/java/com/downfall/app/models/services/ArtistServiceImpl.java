@@ -22,8 +22,8 @@ public class ArtistServiceImpl implements IArtistService{
 	}
 
 	@Override
-	public void save(Artist artist) {
-		artistDao.save(artist);
+	public Artist save(Artist artist) {
+		return artistDao.save(artist);
 	}
 
 	@Override

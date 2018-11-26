@@ -8,7 +8,7 @@ public interface IDemoService {
 	
 	public List<Demo> findAll();
 	
-	public void save(Demo demo);
+	public Demo save(Demo demo);
 	
 	public Demo findOne(Long id);
 

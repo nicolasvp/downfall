@@ -12,6 +12,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -42,6 +43,12 @@ public class Country implements Serializable{
 	@DateTimeFormat(pattern="dd-MM-yyyy")
 	private Date createdAt;
 
+	// Agrega automaticamente una fecha para el campo created_at cada vez que se crea un registro
+	@PrePersist
+	public void prePersist() {
+		createdAt = new Date();
+	}
+	
 	public Long getId() {
 		return id;
 	}

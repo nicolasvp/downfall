@@ -22,8 +22,8 @@ public class DemoServiceImpl implements IDemoService{
 	}
 
 	@Override
-	public void save(Demo demo) {
-		demoDao.save(demo);
+	public Demo save(Demo demo) {
+		return demoDao.save(demo);
 	}
 
 	@Override

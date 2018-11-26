@@ -8,7 +8,7 @@ public interface ICountryService {
 	
 	public List<Country> findAll();
 	
-	public void save(Country country);
+	public Country save(Country country);
 	
 	public Country findOne(Long id);
 	

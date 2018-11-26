@@ -12,6 +12,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -23,6 +24,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 @Entity
 @Table(name="roles")
 public class Rol implements Serializable{
+	
+	private static final long serialVersionUID = 1L;
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,8 +47,12 @@ public class Rol implements Serializable{
 	@DateTimeFormat(pattern="dd-MM-yyyy")
 	private Date createdAt;
 	
+	// Agrega automaticamente una fecha para el campo created_at cada vez que se crea un registro
+	@PrePersist
+	public void prePersist() {
+		createdAt = new Date();
+	}
 	
-	private static final long serialVersionUID = 1L;
 	public String getName() {
 		return name;
 	}

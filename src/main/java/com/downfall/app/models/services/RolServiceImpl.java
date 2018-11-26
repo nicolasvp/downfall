@@ -22,8 +22,8 @@ public class RolServiceImpl implements IRolService{
 	}
 
 	@Override
-	public void save(Rol rol) {
-		rolDao.save(rol);
+	public Rol save(Rol rol) {
+		return rolDao.save(rol);
 	}
 
 	@Override

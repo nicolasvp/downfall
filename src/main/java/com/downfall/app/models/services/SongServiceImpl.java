@@ -22,8 +22,8 @@ public class SongServiceImpl implements ISongService{
 	}
 
 	@Override
-	public void save(Song song) {
-		songDao.save(song);
+	public Song save(Song song) {
+		return songDao.save(song);
 	}
 
 	@Override
