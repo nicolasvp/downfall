@@ -36,5 +36,4 @@ public class AlbumServiceImpl implements IAlbumService{
 	public void delete(Long id) {
 		albumDao.deleteById(id);
 	}
-
 }

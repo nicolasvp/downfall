@@ -11,6 +11,6 @@ public interface IDemoService {
 	public Demo save(Demo demo);
 	
 	public Demo findOne(Long id);
-
+	
 	public void delete(Long id);
 }
