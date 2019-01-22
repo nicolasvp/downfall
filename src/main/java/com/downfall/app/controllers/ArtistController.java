@@ -18,11 +18,19 @@ import org.springframework.web.bind.annotation.RestController;
 import com.downfall.app.models.entity.Artist;
 import com.downfall.app.models.services.IArtistService;
 
-@CrossOrigin()
+/*
+ * Acá se manejan las rutas y se asocian a metodos
+ * Se implementa crossorigin para CORS con Angular
+ */
+
+@CrossOrigin(origins= {"http://localhost:4200"})
 @RestController
 @RequestMapping("/api")
 public class ArtistController {
 
+	/*
+	 * Se debe inyectar el servicio para hacer uso de sus metodos
+	 */
 	@Autowired
 	private IArtistService artistService;
 	
@@ -32,34 +40,30 @@ public class ArtistController {
 	}
 	
 	@GetMapping("/artists/{id}")
-	@ResponseStatus(HttpStatus.OK)
 	public Artist show(@PathVariable Long id) {
-		return artistService.findOne(id);
+		return artistService.findById(id);
 	}
 	
 	@PostMapping("/artists")
+	// Http status por defecto está en 200(ok), created es 201
 	@ResponseStatus(HttpStatus.CREATED)
-	public Artist store(@RequestBody Artist artist) {
+	public Artist create(@RequestBody Artist artist) {
 		return artistService.save(artist);
 	}
 	
 	@PutMapping("/artists/{id}")
 	@ResponseStatus(HttpStatus.CREATED)
-	public Artist update(@RequestBody Artist artist, Long id) {
-		Artist artistUpdated = artistService.findOne(id);
+	public Artist update(@RequestBody Artist artist, @PathVariable Long id) {
+		Artist artistDB = artistService.findById(id);
 		
-		artistUpdated.setName(artist.getName());
-		artistUpdated.setPhoto(artist.getPhoto());
-		artistUpdated.setGenre(artist.getGenre());
-		artistUpdated.setCountry(artist.getCountry());
-		artistUpdated.setDemos(artist.getDemos());
-		artistUpdated.setAlbums(artist.getAlbums());
-		artistUpdated.setBornDate(artist.getBornDate());
+		artistDB.setName(artist.getName());
+		artistDB.setImage(artist.getImage());
 		
-		return artistService.save(artistUpdated);
+		return artistService.save(artistDB);
 	}
 	
 	@DeleteMapping("/artists/{id}")
+	// HttpStatus response 401
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void delete(@PathVariable Long id) {
 		artistService.delete(id);

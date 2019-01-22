@@ -18,11 +18,19 @@ import org.springframework.web.bind.annotation.RestController;
 import com.downfall.app.models.entity.Album;
 import com.downfall.app.models.services.IAlbumService;
 
-@CrossOrigin()
+/*
+ * Acá se manejan las rutas y se asocian a metodos
+ * Se implementa crossorigin para CORS con Angular
+ */
+
+@CrossOrigin(origins= {"http://localhost:4200"})
 @RestController
 @RequestMapping("/api")
 public class AlbumController {
-	
+
+	/*
+	 * Se debe inyectar el servicio para hacer uso de sus metodos
+	 */
 	@Autowired
 	private IAlbumService albumService;
 	
@@ -32,31 +40,30 @@ public class AlbumController {
 	}
 	
 	@GetMapping("/albums/{id}")
-	@ResponseStatus(HttpStatus.OK) // codigo 200
 	public Album show(@PathVariable Long id) {
-		return albumService.findOne(id);
+		return albumService.findById(id);
 	}
 	
 	@PostMapping("/albums")
-	@ResponseStatus(HttpStatus.CREATED) // codigo 201
-	public Album store(@RequestBody Album album) {
+	// Http status por defecto está en 200(ok), created es 201
+	@ResponseStatus(HttpStatus.CREATED)
+	public Album create(@RequestBody Album album) {
 		return albumService.save(album);
 	}
 	
-	@PutMapping("/albums/{id}")
+	@PutMapping("/album/{id}")
 	@ResponseStatus(HttpStatus.CREATED)
 	public Album update(@RequestBody Album album, @PathVariable Long id) {
-		Album albumUpdated = albumService.findOne(id);
+		Album albumDB = albumService.findById(id);
 		
-		albumUpdated.setArtist(album.getArtist());
-		albumUpdated.setName(album.getName());
-		albumUpdated.setPhoto(album.getPhoto());
-		albumUpdated.setSongs(album.getSongs());
+		albumDB.setName(album.getName());
+		albumDB.setImage(album.getImage());
 		
-		return albumService.save(albumUpdated);
+		return albumService.save(albumDB);
 	}
 	
 	@DeleteMapping("/albums/{id}")
+	// HttpStatus response 401
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void delete(@PathVariable Long id) {
 		albumService.delete(id);

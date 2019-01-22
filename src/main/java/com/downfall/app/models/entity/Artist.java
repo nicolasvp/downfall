@@ -11,62 +11,52 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
-import org.springframework.format.annotation.DateTimeFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
-@Table(name="artists")
-public class Artist implements Serializable{
+@Table(name = "artists")
+public class Artist implements Serializable {
+
 	private static final long serialVersionUID = 1L;
+	
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Long id;
 	
-	@NotEmpty
+	@NotEmpty(message="Debe escribir un nombre para el Artista")
+	@Column(nullable = false, unique=true)
+	@Size(min=1, max=100, message="El tamaño debe ser entre 1 y 20 caracteres")
 	private String name;
 	
+	@Column(nullable = true)
+	private String image;
 	
-	@NotNull
-	@Column(name="born_date")
-	@Temporal(TemporalType.DATE)
-	@DateTimeFormat(pattern="dd-MM-yyyy")
-	private Date bornDate;
-	
-	@ManyToOne(fetch = FetchType.LAZY)
-	private Country country;
-	
-
-	@ManyToOne(fetch = FetchType.LAZY)
-	private Genre genre;
-	
-	private String photo;
-	
-	// Con mappedBy crea la fk en albums con el nombre artist_id(esta relacion es bidireccional)
-	@OneToMany(mappedBy = "artist", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-	private List <Album> albums;
-	
-	// Con mappedBy crea la fk en albums con el nombre artist_id(esta relacion es bidireccional)
-	@OneToMany(mappedBy = "artist", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-	private List <Demo> demos;
-	
-	@NotNull
 	@Column(name="created_at")
 	@Temporal(TemporalType.DATE)
-	@DateTimeFormat(pattern="dd-MM-yyyy")
 	private Date createdAt;
 	
-	// Agrega automaticamente una fecha para el campo created_at cada vez que se crea un registro
-	@PrePersist
+	// JsonIgnoreProperties para eliminar los atributos que no sirven ("hibernateLazyInitializer", "handler"), ademas evitar que la relación caiga en un loop infinito (padre pide los hijos y los hijos al padre y asi sucesivamente)
+	@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "artists"})
+	// Muchos artistas pertenecen a un solo genero, se incluye el join column para especificar el campo que será la llave foranea
+	@ManyToOne(fetch=FetchType.LAZY)
+	private Genre genre;
+
+	@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "artist"})
+	@OneToMany(fetch=FetchType.LAZY, mappedBy="artist", cascade=CascadeType.ALL)
+	private List<Album> albums;
+	
+	// Crea la fecha actual para el campo createdAt
 	public void prePersist() {
-		createdAt = new Date();
+		this.createdAt = new Date();
 	}
 	
 	public Long getId() {
@@ -85,36 +75,12 @@ public class Artist implements Serializable{
 		this.name = name;
 	}
 
-	public Date getBornDate() {
-		return bornDate;
+	public String getImage() {
+		return image;
 	}
 
-	public void setBornDate(Date bornDate) {
-		this.bornDate = bornDate;
-	}
-
-	public Country getCountry() {
-		return country;
-	}
-
-	public void setCountry(Country country) {
-		this.country = country;
-	}
-
-	public Genre getGenre() {
-		return genre;
-	}
-
-	public void setGenre(Genre genre) {
-		this.genre = genre;
-	}
-
-	public String getPhoto() {
-		return photo;
-	}
-
-	public void setPhoto(String photo) {
-		this.photo = photo;
+	public void setImage(String image) {
+		this.image = image;
 	}
 
 	public Date getCreatedAt() {
@@ -125,23 +91,12 @@ public class Artist implements Serializable{
 		this.createdAt = createdAt;
 	}
 
-	public static long getSerialversionuid() {
-		return serialVersionUID;
+	public Genre getGenre() {
+		return genre;
 	}
 
-	public List<Album> getAlbums() {
-		return albums;
+	public void setGenre(Genre genre) {
+		this.genre = genre;
 	}
 
-	public void setAlbums(List<Album> albums) {
-		this.albums = albums;
-	}
-
-	public List<Demo> getDemos() {
-		return demos;
-	}
-
-	public void setDemos(List<Demo> demos) {
-		this.demos = demos;
-	}
 }

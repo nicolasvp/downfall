@@ -12,29 +12,36 @@ import com.downfall.app.models.entity.Artist;
 @Service
 public class ArtistServiceImpl implements IArtistService{
 
+	/*
+	 * Acá se implementan los metodos declarados en la interfaz de IGenreService
+	 */
+	
+	// Se utiliza el objeto de Dao para utilizar los metodos del crudRepository
 	@Autowired
 	private IArtistDao artistDao;
 	
 	@Override
-	@Transactional(readOnly=true)
+	@Transactional(readOnly = true)
 	public List<Artist> findAll() {
 		return (List<Artist>) artistDao.findAll();
 	}
 
 	@Override
+	@Transactional(readOnly = true)
+	public Artist findById(Long id) {
+		return artistDao.findById(id).orElse(null);
+	}
+
+	@Override
+	@Transactional()
 	public Artist save(Artist artist) {
 		return artistDao.save(artist);
 	}
 
 	@Override
-	@Transactional
+	@Transactional()
 	public void delete(Long id) {
 		artistDao.deleteById(id);
 	}
 
-	@Override
-	@Transactional(readOnly=true)
-	public Artist findOne(Long id) {
-		return artistDao.findById(id).orElse(null);
-	}
 }

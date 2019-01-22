@@ -1,6 +1,7 @@
 package com.downfall.app.models.entity;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -13,110 +14,114 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
-import org.springframework.format.annotation.DateTimeFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name="albums")
 public class Album implements Serializable{
+
 	private static final long serialVersionUID = 1L;
+
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Long id;
 	
-	@NotEmpty
+	@NotEmpty(message="Debe escribir un nombre para el Album")
+	@Size(min=1, max=100, message="El tamaño debe ser entre 1 y 20 caracteres")
 	private String name;
 	
-	@NotNull
-	@Column(name="creation_date")
-	@Temporal(TemporalType.DATE)
-	@DateTimeFormat(pattern="dd-MM-yyyy")
-	private Date creationDate;
+	@Column(nullable = true)
+	private String image;
 	
-	@ManyToOne(fetch = FetchType.LAZY)
-	private Artist artist;
-		
-	private String photo;
+	@NotEmpty(message="Debe ingresar la fecha de lanzamiento")
+	@Column(name="release_date")
+	private Date releaseDate;
 	
-	// Con mappedBy crea la fk en albums con el nombre artist_id(esta relacion es bidireccional)
-	@OneToMany(mappedBy = "album", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-	private List <Song> songs;
-	
-	@NotNull
 	@Column(name="created_at")
 	@Temporal(TemporalType.DATE)
-	@DateTimeFormat(pattern="dd-MM-yyyy")
 	private Date createdAt;
-
-	// Agrega automaticamente una fecha para el campo created_at cada vez que se crea un registro
-	@PrePersist
+	
+	// JsonIgnoreProperties para eliminar los atributos que no sirven ("hibernateLazyInitializer", "handler"), ademas evitar que la relación caiga en un loop infinito (padre pide los hijos y los hijos al padre y asi sucesivamente)
+	@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "albums"})
+	@ManyToOne(fetch=FetchType.LAZY)
+	private Artist artist;
+	
+	// JsonIgnoreProperties para eliminar los atributos que no sirven ("hibernateLazyInitializer", "handler"), ademas evitar que la relación caiga en un loop infinito (padre pide los hijos y los hijos al padre y asi sucesivamente)
+	@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "album"})
+	@OneToMany(fetch=FetchType.LAZY, mappedBy="album", cascade=CascadeType.ALL)
+	private List<Track> tracks;
+	
+	// Crea la fecha actual para el campo createdAt
 	public void prePersist() {
-		createdAt = new Date();
+		this.createdAt = new Date();
 	}
 	
+	public Album() {
+		this.tracks = new ArrayList<>();
+	}
+
 	public Long getId() {
 		return id;
 	}
+
 
 	public void setId(Long id) {
 		this.id = id;
 	}
 
+
 	public String getName() {
 		return name;
 	}
+
 
 	public void setName(String name) {
 		this.name = name;
 	}
 
-	public Date getCreationDate() {
-		return creationDate;
+
+	public String getImage() {
+		return image;
 	}
 
-	public void setCreationDate(Date creationDate) {
-		this.creationDate = creationDate;
+
+	public void setImage(String image) {
+		this.image = image;
 	}
 
-	public Artist getArtist() {
-		return artist;
+
+	public Date getReleaseDate() {
+		return releaseDate;
 	}
 
-	public void setArtist(Artist artist) {
-		this.artist = artist;
+
+	public void setReleaseDate(Date releaseDate) {
+		this.releaseDate = releaseDate;
 	}
 
-	public String getPhoto() {
-		return photo;
-	}
-
-	public void setPhoto(String photo) {
-		this.photo = photo;
-	}
 
 	public Date getCreatedAt() {
 		return createdAt;
 	}
 
+
 	public void setCreatedAt(Date createdAt) {
 		this.createdAt = createdAt;
 	}
 
-	public static long getSerialversionuid() {
-		return serialVersionUID;
+
+	public Artist getArtist() {
+		return artist;
 	}
 
-	public List<Song> getSongs() {
-		return songs;
-	}
 
-	public void setSongs(List<Song> songs) {
-		this.songs = songs;
+	public void setArtist(Artist artist) {
+		this.artist = artist;
 	}
 }

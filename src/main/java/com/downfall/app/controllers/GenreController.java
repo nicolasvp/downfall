@@ -18,11 +18,19 @@ import org.springframework.web.bind.annotation.RestController;
 import com.downfall.app.models.entity.Genre;
 import com.downfall.app.models.services.IGenreService;
 
-@CrossOrigin()
+/*
+ * Acá se manejan las rutas y se asocian a metodos
+ * Se implementa crossorigin para CORS con Angular
+ */
+
+@CrossOrigin(origins= {"http://localhost:4200"})
 @RestController
 @RequestMapping("/api")
 public class GenreController {
 
+	/*
+	 * Se debe inyectar el servicio para hacer uso de sus metodos
+	 */
 	@Autowired
 	private IGenreService genreService;
 	
@@ -32,29 +40,29 @@ public class GenreController {
 	}
 	
 	@GetMapping("/genres/{id}")
-	@ResponseStatus(HttpStatus.OK)
 	public Genre show(@PathVariable Long id) {
-		return genreService.findOne(id);
+		return genreService.findById(id);
 	}
 	
 	@PostMapping("/genres")
+	// Http status por defecto está en 200(ok), created es 201
 	@ResponseStatus(HttpStatus.CREATED)
-	public Genre store(@RequestBody Genre genre) {
+	public Genre create(@RequestBody Genre genre) {
 		return genreService.save(genre);
 	}
 	
 	@PutMapping("/genres/{id}")
 	@ResponseStatus(HttpStatus.CREATED)
 	public Genre update(@RequestBody Genre genre, @PathVariable Long id) {
-		Genre genreUpdated = genreService.findOne(id);
+		Genre genreDB = genreService.findById(id);
 		
-		genreUpdated.setName(genre.getName());
-		genreUpdated.setArtists(genre.getArtists());
+		genreDB.setName(genre.getName());
 		
-		return genreService.save(genreUpdated);
+		return genreService.save(genreDB);
 	}
 	
 	@DeleteMapping("/genres/{id}")
+	// HttpStatus response 401
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void delete(@PathVariable Long id) {
 		genreService.delete(id);
