@@ -37,6 +37,11 @@ public class Genre implements Serializable {
 	@Size(min=1, max=100, message="El tamaño debe ser entre 1 y 20 caracteres")
 	private String name;
 
+	private String image;
+	
+	@Size(min=1, max=2000, message="El tamaño debe ser entre 1 y 2000 caracteres")
+	private String description;
+	
 	@Column(name = "created_at")
 	@Temporal(TemporalType.DATE)
 	private Date createdAt;
@@ -90,5 +95,20 @@ public class Genre implements Serializable {
 	public void setArtists(List<Artist> artists) {
 		this.artists = artists;
 	}
-	
+
+	public String getImage() {
+		return image;
+	}
+
+	public void setImage(String image) {
+		this.image = image;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
 }

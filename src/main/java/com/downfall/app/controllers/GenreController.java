@@ -57,6 +57,8 @@ public class GenreController {
 		Genre genreDB = genreService.findById(id);
 		
 		genreDB.setName(genre.getName());
+		genreDB.setDescription(genre.getDescription());
+		genreDB.setImage(genre.getImage());
 		
 		return genreService.save(genreDB);
 	}
