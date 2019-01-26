@@ -1,9 +1,13 @@
 package com.downfall.app.controllers;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +27,7 @@ import com.downfall.app.models.services.IGenreService;
  * Se implementa crossorigin para CORS con Angular
  */
 
-@CrossOrigin(origins= {"http://localhost:4200"})
+@CrossOrigin(origins = { "http://localhost:4200" })
 @RestController
 @RequestMapping("/api")
 public class GenreController {
@@ -33,40 +37,108 @@ public class GenreController {
 	 */
 	@Autowired
 	private IGenreService genreService;
-	
+
 	@GetMapping("/genres")
-	public List<Genre> index(){
+	public List<Genre> index() {
 		return genreService.findAll();
 	}
-	
+
+	// Se utiliza responseEntity para validar si existe el genero segun el id, si no
+	// existe entonces retorna un mensaje de error
 	@GetMapping("/genres/{id}")
-	public Genre show(@PathVariable Long id) {
-		return genreService.findById(id);
+	public ResponseEntity<?> show(@PathVariable Long id) {
+
+		Genre genre = null;
+		Map<String, Object> response = new HashMap<>();
+
+		// Validacion de spring para el acceso a datos(base de datos)
+		try {
+			genre = genreService.findById(id);
+		} catch (DataAccessException e) {
+			response.put("msg", "Error al realizar la consulta en la base de datos");
+			response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+		}
+
+		// Validación para género no encontrado
+		if (genre == null) {
+			response.put("msg", "El género con ID: ".concat(id.toString().concat(" no existe en la base de datos")));
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
+		}
+
+		return new ResponseEntity<Genre>(genre, HttpStatus.OK);
 	}
-	
+
 	@PostMapping("/genres")
 	// Http status por defecto está en 200(ok), created es 201
 	@ResponseStatus(HttpStatus.CREATED)
-	public Genre create(@RequestBody Genre genre) {
-		return genreService.save(genre);
+	public ResponseEntity<?> create(@RequestBody Genre genre) {
+
+		Genre new_genre = null;
+		Map<String, Object> response = new HashMap<>();
+
+		try {
+			new_genre = genreService.save(genre);
+		} catch (DataAccessException e) {
+			response.put("msg", "Error al intentar guardar el nuevo género");
+			response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		response.put("msg", "Género se ha creado con éxito");
+		response.put("genre", new_genre);
+
+		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
+
 	}
-	
+
 	@PutMapping("/genres/{id}")
 	@ResponseStatus(HttpStatus.CREATED)
-	public Genre update(@RequestBody Genre genre, @PathVariable Long id) {
+	public ResponseEntity<?> update(@RequestBody Genre genre, @PathVariable Long id) {
 		Genre genreDB = genreService.findById(id);
-		
-		genreDB.setName(genre.getName());
-		genreDB.setDescription(genre.getDescription());
-		genreDB.setImage(genre.getImage());
-		
-		return genreService.save(genreDB);
+		Genre genreUpdated = null;
+		Map<String, Object> response = new HashMap<>();
+
+		// Si no se encontró el género devuelve un error
+		if (genreDB == null) {
+			response.put("msg", "El género no existe en la base de datos");
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
+		}
+
+		try {
+			genreDB.setName(genre.getName());
+			genreDB.setDescription(genre.getDescription());
+			genreDB.setImage(genre.getImage());
+
+			genreUpdated = genreService.save(genreDB);
+		} catch (DataAccessException e) {
+			response.put("msg", "Error al intentar actualizar el género en la base de datos");
+			response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		response.put("msg", "Género actualizado con éxito");
+		response.put("genre", genreUpdated);
+
+		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 	}
-	
+
 	@DeleteMapping("/genres/{id}")
-	// HttpStatus response 401
-	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void delete(@PathVariable Long id) {
-		genreService.delete(id);
+	public ResponseEntity<?> delete(@PathVariable Long id) {
+		Map<String, Object> response = new HashMap<>();
+		try {
+			genreService.delete(id);
+		} catch (DataAccessException e) {
+			response.put("msg", "Error al intentar eliminar el género en la base de datos, el género no existe");
+			response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		response.put("msg", "Género eliminado con éxito");
+
+		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+
 	}
 }
