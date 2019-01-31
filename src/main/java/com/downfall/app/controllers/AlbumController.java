@@ -1,9 +1,13 @@
 package com.downfall.app.controllers;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +20,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.downfall.app.models.entity.Album;
+import com.downfall.app.models.entity.Artist;
 import com.downfall.app.models.services.IAlbumService;
 
 /*
@@ -40,32 +45,95 @@ public class AlbumController {
 	}
 	
 	@GetMapping("/albums/{id}")
-	public Album show(@PathVariable Long id) {
-		return albumService.findById(id);
+	public ResponseEntity<?> show(@PathVariable Long id) {
+		
+		Album album = null;
+		Map<String, Object> response = new HashMap<>();
+
+		// Validacion de spring para el acceso a datos(base de datos)
+		try {
+			album = albumService.findById(id);
+		} catch (DataAccessException e) {
+			response.put("msg", "Error al realizar la consulta en la base de datos");
+			response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+		}
+
+		// Validación para album no encontrado
+		if (album == null) {
+			response.put("msg", "El Album con ID: ".concat(id.toString().concat(" no existe en la base de datos")));
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
+		}
+
+		return new ResponseEntity<Album>(album, HttpStatus.OK);
 	}
 	
 	@PostMapping("/albums")
-	// Http status por defecto está en 200(ok), created es 201
-	@ResponseStatus(HttpStatus.CREATED)
-	public Album create(@RequestBody Album album) {
-		return albumService.save(album);
+	public ResponseEntity<?> create(@RequestBody Album album) {
+		
+		Album new_album = null;
+		Map<String, Object> response = new HashMap<>();
+
+		try {
+			new_album = albumService.save(new_album);
+		} catch (DataAccessException e) {
+			response.put("msg", "Error al intentar guardar el nuevo album");
+			response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		response.put("msg", "Album creado con éxito");
+		response.put("album", new_album);
+
+		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 	}
 	
 	@PutMapping("/album/{id}")
-	@ResponseStatus(HttpStatus.CREATED)
-	public Album update(@RequestBody Album album, @PathVariable Long id) {
+	public ResponseEntity<?> update(@RequestBody Album album, @PathVariable Long id) {
+		
 		Album albumDB = albumService.findById(id);
-		
-		albumDB.setName(album.getName());
-		albumDB.setImage(album.getImage());
-		
-		return albumService.save(albumDB);
+		Album albumUpdated = null;
+		Map<String, Object> response = new HashMap<>();
+
+		// Si no se encontró el género devuelve un error
+		if (albumDB == null) {
+			response.put("msg", "El album no existe en la base de datos");
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
+		}
+
+		try {
+			albumDB.setName(album.getName());
+			albumDB.setImage(album.getImage());
+
+			albumUpdated = albumService.save(albumDB);
+		} catch (DataAccessException e) {
+			response.put("msg", "Error al intentar actualizar el album en la base de datos");
+			response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		response.put("msg", "Album actualizado con éxito");
+		response.put("album", albumUpdated);
+
+		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 	}
 	
 	@DeleteMapping("/albums/{id}")
-	// HttpStatus response 401
-	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void delete(@PathVariable Long id) {
-		albumService.delete(id);
+	public ResponseEntity<?> delete(@PathVariable Long id) {
+		Map<String, Object> response = new HashMap<>();
+
+		try {
+			albumService.delete(id);
+		} catch (DataAccessException e) {
+			response.put("msg", "Error al intentar eliminar el album en la base de datos, el album no existe");
+			response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		response.put("msg", "Album eliminado con éxito");
+
+		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
 	}
 }

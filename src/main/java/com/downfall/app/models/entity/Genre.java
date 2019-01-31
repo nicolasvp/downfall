@@ -33,13 +33,13 @@ public class Genre implements Serializable {
 	private Long id;
 
 	@Column(nullable = false, unique = true)
-	@NotEmpty(message="Debe escribir un nombre para el genero")
-	@Size(min=1, max=100, message="El tamaño debe ser entre 1 y 100 caracteres")
+	@NotEmpty(message="no puede estar vacío")
+	@Size(min=1, max=100, message="debe contener entre 1 y 100 caracteres")
 	private String name;
 
 	private String image;
 	
-	@Size(min=1, max=2000, message="El tamaño debe ser entre 1 y 2000 caracteres")
+	@Size(min=1, max=2000, message="debe contener entre 1 y 2000 caracteres")
 	private String description;
 	
 	@Column(name = "created_at")

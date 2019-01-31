@@ -3,11 +3,15 @@ package com.downfall.app.controllers;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -70,14 +74,24 @@ public class GenreController {
 		return new ResponseEntity<Genre>(genre, HttpStatus.OK);
 	}
 
+	// Con la notacion @Valid se pasa el requestBody por validaciones y se guardan los resultados en la variable result
 	@PostMapping("/genres")
-	// Http status por defecto está en 200(ok), created es 201
-	@ResponseStatus(HttpStatus.CREATED)
-	public ResponseEntity<?> create(@RequestBody Genre genre) {
+	public ResponseEntity<?> create(@Valid @RequestBody Genre genre, BindingResult result) {
 
 		Genre new_genre = null;
 		Map<String, Object> response = new HashMap<>();
 
+		// Si no pasa la validación entonces lista los errores y los retorna
+		if(result.hasErrors()) {
+			List<String> errors = result.getFieldErrors()
+					.stream()
+					.map(err -> "El campo " + err.getField() + " " + err.getDefaultMessage())
+					.collect(Collectors.toList());
+			
+			response.put("errors", errors);
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
+		}
+		
 		try {
 			new_genre = genreService.save(genre);
 		} catch (DataAccessException e) {
@@ -87,20 +101,31 @@ public class GenreController {
 			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
-		response.put("msg", "Género se ha creado con éxito");
+		response.put("msg", "Género creado con éxito");
 		response.put("genre", new_genre);
 
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 
 	}
 
+	// Con la notacion @Valid se pasa el requestBody por validaciones y se guardan los resultados en la variable result
 	@PutMapping("/genres/{id}")
-	@ResponseStatus(HttpStatus.CREATED)
-	public ResponseEntity<?> update(@RequestBody Genre genre, @PathVariable Long id) {
+	public ResponseEntity<?> update(@Valid @RequestBody Genre genre, BindingResult result, @PathVariable Long id) {
 		Genre genreDB = genreService.findById(id);
 		Genre genreUpdated = null;
 		Map<String, Object> response = new HashMap<>();
-
+		
+		// Si no pasa la validación entonces lista los errores y los retorna
+		if(result.hasErrors()) {
+			List<String> errors = result.getFieldErrors()
+					.stream()
+					.map(err -> "El campo " + err.getField() + " " + err.getDefaultMessage())
+					.collect(Collectors.toList());
+			
+			response.put("errors", errors);
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
+		}
+		
 		// Si no se encontró el género devuelve un error
 		if (genreDB == null) {
 			response.put("msg", "El género no existe en la base de datos");
