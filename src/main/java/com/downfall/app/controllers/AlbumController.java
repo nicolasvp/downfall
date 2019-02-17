@@ -3,11 +3,13 @@ package com.downfall.app.controllers;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,11 +18,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.downfall.app.models.entity.Album;
-import com.downfall.app.models.entity.Artist;
 import com.downfall.app.models.services.IAlbumService;
 
 /*
@@ -28,7 +28,7 @@ import com.downfall.app.models.services.IAlbumService;
  * Se implementa crossorigin para CORS con Angular
  */
 
-@CrossOrigin(origins= {"http://localhost:4200"})
+@CrossOrigin(origins = { "http://localhost:4200" })
 @RestController
 @RequestMapping("/api")
 public class AlbumController {
@@ -70,13 +70,24 @@ public class AlbumController {
 	}
 	
 	@PostMapping("/albums")
-	public ResponseEntity<?> create(@RequestBody Album album) {
+	public ResponseEntity<?> create(@RequestBody Album album, BindingResult result) {
 		
 		Album new_album = null;
 		Map<String, Object> response = new HashMap<>();
 
+		// Si no pasa la validación entonces lista los errores y los retorna
+		if(result.hasErrors()) {
+			List<String> errors = result.getFieldErrors()
+					.stream()
+					.map(err -> "El campo " + err.getField() + " " + err.getDefaultMessage())
+					.collect(Collectors.toList());
+			
+			response.put("errors", errors);
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
+		}
+		
 		try {
-			new_album = albumService.save(new_album);
+			new_album = albumService.save(album);
 		} catch (DataAccessException e) {
 			response.put("msg", "Error al intentar guardar el nuevo album");
 			response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
@@ -90,13 +101,24 @@ public class AlbumController {
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 	}
 	
-	@PutMapping("/album/{id}")
-	public ResponseEntity<?> update(@RequestBody Album album, @PathVariable Long id) {
+	@PutMapping("/albums/{id}")
+	public ResponseEntity<?> update(@RequestBody Album album, BindingResult result, @PathVariable Long id) {
 		
 		Album albumDB = albumService.findById(id);
 		Album albumUpdated = null;
 		Map<String, Object> response = new HashMap<>();
 
+		// Si no pasa la validación entonces lista los errores y los retorna
+		if(result.hasErrors()) {
+			List<String> errors = result.getFieldErrors()
+					.stream()
+					.map(err -> "El campo " + err.getField() + " " + err.getDefaultMessage())
+					.collect(Collectors.toList());
+			
+			response.put("errors", errors);
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
+		}
+		
 		// Si no se encontró el género devuelve un error
 		if (albumDB == null) {
 			response.put("msg", "El album no existe en la base de datos");
@@ -106,6 +128,8 @@ public class AlbumController {
 		try {
 			albumDB.setName(album.getName());
 			albumDB.setImage(album.getImage());
+			albumDB.setReleaseDate(album.getReleaseDate());
+			albumDB.setArtist(album.getArtist());
 
 			albumUpdated = albumService.save(albumDB);
 		} catch (DataAccessException e) {
@@ -122,6 +146,7 @@ public class AlbumController {
 	
 	@DeleteMapping("/albums/{id}")
 	public ResponseEntity<?> delete(@PathVariable Long id) {
+		
 		Map<String, Object> response = new HashMap<>();
 
 		try {

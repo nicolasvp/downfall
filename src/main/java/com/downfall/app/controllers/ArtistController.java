@@ -3,11 +3,13 @@ package com.downfall.app.controllers;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -70,13 +72,24 @@ public class ArtistController {
 	}
 
 	@PostMapping("/artists")
-	public ResponseEntity<?> create(@RequestBody Artist artist) {
+	public ResponseEntity<?> create(@RequestBody Artist artist, BindingResult result) {
 
 		Artist new_artist = null;
 		Map<String, Object> response = new HashMap<>();
 
+		// Si no pasa la validación entonces lista los errores y los retorna
+		if(result.hasErrors()) {
+			List<String> errors = result.getFieldErrors()
+					.stream()
+					.map(err -> "El campo " + err.getField() + " " + err.getDefaultMessage())
+					.collect(Collectors.toList());
+			
+			response.put("errors", errors);
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
+		}
+	
 		try {
-			new_artist = artistService.save(new_artist);
+			new_artist = artistService.save(artist);
 		} catch (DataAccessException e) {
 			response.put("msg", "Error al intentar guardar el nuevo artista");
 			response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
@@ -91,12 +104,23 @@ public class ArtistController {
 	}
 
 	@PutMapping("/artists/{id}")
-	public ResponseEntity<?> update(@RequestBody Artist artist, @PathVariable Long id) {
+	public ResponseEntity<?> update(@RequestBody Artist artist, BindingResult result, @PathVariable Long id) {
 
 		Artist artistDB = artistService.findById(id);
 		Artist artistUpdated = null;
 		Map<String, Object> response = new HashMap<>();
 
+		// Si no pasa la validación entonces lista los errores y los retorna
+		if(result.hasErrors()) {
+			List<String> errors = result.getFieldErrors()
+					.stream()
+					.map(err -> "El campo " + err.getField() + " " + err.getDefaultMessage())
+					.collect(Collectors.toList());
+			
+			response.put("errors", errors);
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
+		}
+		
 		// Si no se encontró el género devuelve un error
 		if (artistDB == null) {
 			response.put("msg", "El artista no existe en la base de datos");
@@ -106,6 +130,9 @@ public class ArtistController {
 		try {
 			artistDB.setName(artist.getName());
 			artistDB.setImage(artist.getImage());
+			artistDB.setYoutubeLink(artist.getYoutubeLink());
+			artistDB.setSpotifyLink(artist.getSpotifyLink());
+			artistDB.setGenre(artist.getGenre());
 
 			artistUpdated = artistService.save(artistDB);
 		} catch (DataAccessException e) {
@@ -132,7 +159,7 @@ public class ArtistController {
 			response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
 			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-
+		
 		response.put("msg", "Artista eliminado con éxito");
 
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);

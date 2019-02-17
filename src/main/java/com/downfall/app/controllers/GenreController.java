@@ -80,7 +80,7 @@ public class GenreController {
 
 		Genre new_genre = null;
 		Map<String, Object> response = new HashMap<>();
-
+		
 		// Si no pasa la validación entonces lista los errores y los retorna
 		if(result.hasErrors()) {
 			List<String> errors = result.getFieldErrors()
@@ -111,6 +111,7 @@ public class GenreController {
 	// Con la notacion @Valid se pasa el requestBody por validaciones y se guardan los resultados en la variable result
 	@PutMapping("/genres/{id}")
 	public ResponseEntity<?> update(@Valid @RequestBody Genre genre, BindingResult result, @PathVariable Long id) {
+		
 		Genre genreDB = genreService.findById(id);
 		Genre genreUpdated = null;
 		Map<String, Object> response = new HashMap<>();
@@ -152,7 +153,9 @@ public class GenreController {
 
 	@DeleteMapping("/genres/{id}")
 	public ResponseEntity<?> delete(@PathVariable Long id) {
+		
 		Map<String, Object> response = new HashMap<>();
+		
 		try {
 			genreService.delete(id);
 		} catch (DataAccessException e) {

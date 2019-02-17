@@ -13,7 +13,10 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -28,11 +31,13 @@ public class Track implements Serializable{
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Long id;
 	
-	@NotEmpty(message="Debe escribir un nombre para la canción")
-	@Size(min=1, max=100, message="El tamaño debe ser entre 1 y 20 caracteres")
+	@NotEmpty(message="no puede estar vacío")
+	@Size(min=1, max=100, message="debe tener entre 1 y 100 caracteres")
 	private String name;
 	
-	@NotEmpty(message="Debe ingresar la duracion de la canción")
+	@NotNull
+	@Min(1)
+	@Max(999)
 	private Integer duration;
 	
 	@Column(name="track_number", nullable=true)

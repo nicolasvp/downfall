@@ -18,6 +18,7 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -32,15 +33,15 @@ public class Album implements Serializable{
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Long id;
 	
-	@NotEmpty(message="Debe escribir un nombre para el Album")
-	@Size(min=1, max=100, message="El tamaño debe ser entre 1 y 20 caracteres")
+	@NotEmpty(message="no puede estar vacío")
+	@Size(min=1, max=100, message="debe tener entre 1 y 100 caracteres")
 	private String name;
 	
 	@Column(nullable = true)
 	private String image;
 	
-	@NotEmpty(message="Debe ingresar la fecha de lanzamiento")
 	@Column(name="release_date")
+	@NotNull(message="no puede estar vacío")
 	private Date releaseDate;
 	
 	@Column(name="created_at")
@@ -63,7 +64,7 @@ public class Album implements Serializable{
 	}
 	
 	public Album() {
-		this.tracks = new ArrayList<>();
+		this.tracks = new ArrayList<Track>();
 	}
 
 	public Long getId() {
