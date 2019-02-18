@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
@@ -81,7 +83,7 @@ public class TrackController {
 	}
 	
 	@PostMapping("/tracks")
-	public ResponseEntity<?> create(@RequestBody Track track, BindingResult result) {
+	public ResponseEntity<?> create(@Valid @RequestBody Track track, BindingResult result) {
 		
 		Track new_track = null;
 		Map<String, Object> response = new HashMap<>();
@@ -113,7 +115,7 @@ public class TrackController {
 	}
 	
 	@PutMapping("/tracks/{id}")
-	public ResponseEntity<?> update(@RequestBody Track track, BindingResult result, @PathVariable Long id) {
+	public ResponseEntity<?> update(@Valid @RequestBody Track track, BindingResult result, @PathVariable Long id) {
 		
 		Track trackDB = trackService.findById(id);
 		Track trackUpdated = null;

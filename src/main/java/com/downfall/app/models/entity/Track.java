@@ -10,6 +10,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -35,12 +36,15 @@ public class Track implements Serializable{
 	@Size(min=1, max=100, message="debe tener entre 1 y 100 caracteres")
 	private String name;
 	
-	@NotNull
+	@NotNull(message="no puede estar vacío")
 	@Min(1)
 	@Max(999)
 	private Integer duration;
 	
-	@Column(name="track_number", nullable=true)
+	@Column(name="track_number")
+	@NotNull(message="no puede estar vacío")
+	@Min(1)
+	@Max(999)
 	private Integer trackNumber;
 	
 	@Column(name="created_at")
@@ -49,12 +53,14 @@ public class Track implements Serializable{
 	
 	// JsonIgnoreProperties para eliminar los atributos que no sirven ("hibernateLazyInitializer", "handler"), ademas evitar que la relación caiga en un loop infinito (padre pide los hijos y los hijos al padre y asi sucesivamente)
 	@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "tracks"})
+	@NotNull(message="no puede estar vacío")
 	@ManyToOne(fetch=FetchType.LAZY)
 	private Album album;
 	
 	// Crea la fecha actual para el campo createdAt
+	@PrePersist
 	public void prePersist() {
-		this.createdAt = new Date();
+		createdAt = new Date();
 	}
 
 	public Long getId() {

@@ -1,12 +1,26 @@
 package com.downfall.app.controllers;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.validation.Valid;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -18,7 +32,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.downfall.app.models.entity.Album;
 import com.downfall.app.models.services.IAlbumService;
@@ -38,6 +54,9 @@ public class AlbumController {
 	 */
 	@Autowired
 	private IAlbumService albumService;
+	
+	// Logger para utilizar como debug
+	private final Logger log = LoggerFactory.getLogger(AlbumController.class);
 	
 	@GetMapping("/albums")
 	public List<Album> index(){
@@ -70,7 +89,7 @@ public class AlbumController {
 	}
 	
 	@PostMapping("/albums")
-	public ResponseEntity<?> create(@RequestBody Album album, BindingResult result) {
+	public ResponseEntity<?> create(@Valid @RequestBody Album album, BindingResult result) {
 		
 		Album new_album = null;
 		Map<String, Object> response = new HashMap<>();
@@ -102,7 +121,7 @@ public class AlbumController {
 	}
 	
 	@PutMapping("/albums/{id}")
-	public ResponseEntity<?> update(@RequestBody Album album, BindingResult result, @PathVariable Long id) {
+	public ResponseEntity<?> update(@Valid @RequestBody Album album, BindingResult result, @PathVariable Long id) {
 		
 		Album albumDB = albumService.findById(id);
 		Album albumUpdated = null;
@@ -149,7 +168,27 @@ public class AlbumController {
 		
 		Map<String, Object> response = new HashMap<>();
 
+		// Elimina la foto asociada al album y luego elimina el album
 		try {
+			Album album = albumService.findById(id);
+			
+			// Elimina la foto anterior(si es que tiene)
+			String fileNameBefore = album.getImage();
+			
+			if(fileNameBefore != null && fileNameBefore.length() > 0) {
+				// Se obtiene la ruta de la foto anterior
+				Path pathFileBefore = Paths.get("uploads").resolve(fileNameBefore).toAbsolutePath();
+				
+				// Se convierte en archivo la foto anterior
+				File fileBefore = pathFileBefore.toFile();
+				
+				// Valida que exista el archivo
+				if(fileBefore.exists() && fileBefore.canRead()) {
+					// Se elimina el archivo
+					fileBefore.delete();
+				}
+			}
+			
 			albumService.delete(id);
 		} catch (DataAccessException e) {
 			response.put("msg", "Error al intentar eliminar el album en la base de datos, el album no existe");
@@ -160,5 +199,92 @@ public class AlbumController {
 		response.put("msg", "Album eliminado con éxito");
 
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+	}
+	
+	// Metodo para subir archivo de imagen para el album
+	@PostMapping("/albums/upload")
+	public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file, @RequestParam("id") Long id){
+		Map<String, Object> response = new HashMap<>();
+		
+		Album album = albumService.findById(id);
+		
+		if(!file.isEmpty()) {
+			// Se obtiene el nombre del archivo, se concatena un string aleatorio para evitar el choque de nombre y se quitan los espacios en blanco
+			String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename().replace(" ", "");
+			
+			// Se obtiene la ruta al directorio que se creo(no estará dentro del paquete war o jar al hacer el deploy) uploads
+			// Se debe colocar la ruta completa
+			Path pathFile = Paths.get("uploads").resolve(fileName).toAbsolutePath();
+			
+			// Log para imprimir en consola la ruta de la imagen
+			log.info(pathFile.toString());
+			
+			try {
+				// Copia el archivo que se ha subido al directorio de uploads
+				Files.copy(file.getInputStream(), pathFile);
+			} catch (IOException e) {
+				response.put("msg", "Error al intentar subir la imagen " + fileName);
+				response.put("error", e.getMessage().concat(": ").concat(e.getCause().getMessage()));
+				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR); 
+			}
+			
+			// Elimina la foto anterior(si es que tiene)
+			String fileNameBefore = album.getImage();
+			
+			if(fileNameBefore != null && fileNameBefore.length() > 0) {
+				// Se obtiene la ruta de la foto anterior
+				Path pathFileBefore = Paths.get("uploads").resolve(fileNameBefore).toAbsolutePath();
+				
+				// Se convierte en archivo la foto anterior
+				File fileBefore = pathFileBefore.toFile();
+				
+				// Valida que exista el archivo
+				if(fileBefore.exists() && fileBefore.canRead()) {
+					// Se elimina el archivo
+					fileBefore.delete();
+				}
+			}
+			
+			album.setImage(fileName);
+			
+			albumService.save(album);
+			
+			response.put("album", album);
+			response.put("msg", "Se ha subido la imagen con éxito");
+			
+		}
+		
+		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
+	}
+	
+	// Muestra el archivo foto del album
+	// En la URL se utiliza una regexp indicando que contendra un nombre y una extension(.+)
+	@GetMapping("uploads/img/{fileName:.+}")
+	public ResponseEntity<Resource> showFile(@PathVariable String fileName){
+		// Se obtiene la ruta al directorio que se creo(no estará dentro del paquete war o jar al hacer el deploy) uploads
+		// Se debe colocar la ruta completa
+		Path pathFile = Paths.get("uploads").resolve(fileName).toAbsolutePath();
+		
+		// Log para imprimir en consola la ruta de la imagen
+		log.info(pathFile.toString());
+		
+		Resource resource = null;
+		
+		try {
+			resource = new UrlResource(pathFile.toUri());
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		}
+		
+		// Validación para el archivo, si no existe y no es accesible
+		if(!resource.exists() && !resource.isReadable()) {
+			throw new RuntimeException("Error al intentar cargar la imagen: "+ fileName);
+		}
+		
+		// Se crea una cabecera para forzar a la descarga de la imagen
+		HttpHeaders header = new HttpHeaders();
+		header.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"");
+		
+		return new ResponseEntity<Resource>(resource, header, HttpStatus.OK);
 	}
 }

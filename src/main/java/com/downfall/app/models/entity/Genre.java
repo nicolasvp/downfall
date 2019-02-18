@@ -13,6 +13,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -59,6 +60,7 @@ public class Genre implements Serializable {
 	}
 
 	// Crea la fecha actual para el campo createdAt
+	@PrePersist
 	public void prePersist() {
 		createdAt = new Date();
 	}

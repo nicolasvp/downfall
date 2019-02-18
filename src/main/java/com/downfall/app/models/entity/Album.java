@@ -14,6 +14,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -40,6 +41,7 @@ public class Album implements Serializable{
 	@Column(nullable = true)
 	private String image;
 	
+	// NotNull para cuando es un objeto, NotEmpty para cuando es  un String
 	@Column(name="release_date")
 	@NotNull(message="no puede estar vacío")
 	private Date releaseDate;
@@ -50,6 +52,7 @@ public class Album implements Serializable{
 	
 	// JsonIgnoreProperties para eliminar los atributos que no sirven ("hibernateLazyInitializer", "handler"), ademas evitar que la relación caiga en un loop infinito (padre pide los hijos y los hijos al padre y asi sucesivamente)
 	@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "albums"})
+	@NotNull(message="no puede estar vacío")
 	@ManyToOne(fetch=FetchType.LAZY)
 	private Artist artist;
 	
@@ -59,8 +62,9 @@ public class Album implements Serializable{
 	private List<Track> tracks;
 	
 	// Crea la fecha actual para el campo createdAt
+	@PrePersist
 	public void prePersist() {
-		this.createdAt = new Date();
+		createdAt = new Date();
 	}
 	
 	public Album() {

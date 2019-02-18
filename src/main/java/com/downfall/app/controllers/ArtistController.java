@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
@@ -72,7 +74,7 @@ public class ArtistController {
 	}
 
 	@PostMapping("/artists")
-	public ResponseEntity<?> create(@RequestBody Artist artist, BindingResult result) {
+	public ResponseEntity<?> create(@Valid @RequestBody Artist artist, BindingResult result) {
 
 		Artist new_artist = null;
 		Map<String, Object> response = new HashMap<>();
@@ -104,7 +106,7 @@ public class ArtistController {
 	}
 
 	@PutMapping("/artists/{id}")
-	public ResponseEntity<?> update(@RequestBody Artist artist, BindingResult result, @PathVariable Long id) {
+	public ResponseEntity<?> update(@Valid @RequestBody Artist artist, BindingResult result, @PathVariable Long id) {
 
 		Artist artistDB = artistService.findById(id);
 		Artist artistUpdated = null;

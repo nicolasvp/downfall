@@ -15,6 +15,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -35,7 +36,7 @@ public class Artist implements Serializable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	//@Column(nullable = false, unique = true)
+	@Column(unique = true)
 	@NotEmpty(message="no puede estar vacío")
 	@Size(min=1, max=100, message="debe contener entre 1 y 100 caracteres")
 	private String name;
@@ -65,6 +66,7 @@ public class Artist implements Serializable {
 	// en un loop infinito (padre pide los hijos y los hijos al padre y asi
 	// sucesivamente)
 	@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
+	@NotNull(message="no puede estar vacío")
 	private Genre genre;
 
 	@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "artist" })
@@ -72,8 +74,9 @@ public class Artist implements Serializable {
 	private List<Album> albums;
 
 	// Crea la fecha actual para el campo createdAt
+	@PrePersist
 	public void prePersist() {
-		this.createdAt = new Date();
+		createdAt = new Date();
 	}
 
 	public Artist() {
