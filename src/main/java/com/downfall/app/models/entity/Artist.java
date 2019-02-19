@@ -138,4 +138,12 @@ public class Artist implements Serializable {
 	public void setSpotifyLink(String spotifyLink) {
 		this.spotifyLink = spotifyLink;
 	}
+
+	public List<Album> getAlbums() {
+		return albums;
+	}
+
+	public void setAlbums(List<Album> albums) {
+		this.albums = albums;
+	}
 }

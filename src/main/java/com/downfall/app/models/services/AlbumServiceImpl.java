@@ -13,7 +13,7 @@ import com.downfall.app.models.entity.Album;
 public class AlbumServiceImpl implements IAlbumService{
 
 	/*
-	 * Acá se implementan los metodos declarados en la interfaz de IGenreService
+	 * Acá se implementan los metodos declarados en la interfaz de IAlbumService
 	 */
 	
 	// Se utiliza el objeto de Dao para utilizar los metodos del crudRepository

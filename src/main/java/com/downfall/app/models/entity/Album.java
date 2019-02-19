@@ -129,4 +129,12 @@ public class Album implements Serializable{
 	public void setArtist(Artist artist) {
 		this.artist = artist;
 	}
+
+	public List<Track> getTracks() {
+		return tracks;
+	}
+
+	public void setTracks(List<Track> tracks) {
+		this.tracks = tracks;
+	}
 }
