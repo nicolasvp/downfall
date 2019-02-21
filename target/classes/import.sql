@@ -82,4 +82,14 @@ INSERT INTO tracks (name, track_number, duration, album_id, created_at) VALUES('
 INSERT INTO tracks (name, track_number, duration, album_id, created_at) VALUES('Still Dre', 2, 210, '14', NOW());
 INSERT INTO tracks (name, track_number, duration, album_id, created_at) VALUES('Bang Bang', 3, 120, '14', NOW());
 
+INSERT INTO users (name, email, username, password, enabled) VALUES ('Administrador', 'admin@mail.com', 'admin', '$2a$10$8lYtUcBEFVloCaYGmvUKRef9TO7WQS6oZ02EXHUrhRcsT/pZQPHYq', 1);
+INSERT INTO users (name, email, username, password, enabled) VALUES ('Nicolas', 'nicolas@mail.com', 'nicolasvp', '$2a$10$drFxAUx3GML.L1Avi9dPnev6orDSHBKmmA9XTGvUeDV98BEWWFn1K', 1);
+
+/* Los roles deben tener el prefijo ROLE_ */
+INSERT INTO roles (name, description) VALUES ('ROLE_ADMIN', 'Administrador del sistema');
+INSERT INTO roles (name, description) VALUES ('ROLE_USER', 'Usuario del sistema');
+
+INSERT INTO users_roles (user_id, role_id) VALUES (1, 1);
+INSERT INTO users_roles (user_id, role_id) VALUES (1, 2);
+INSERT INTO users_roles (user_id, role_id) VALUES (2, 1);
 
