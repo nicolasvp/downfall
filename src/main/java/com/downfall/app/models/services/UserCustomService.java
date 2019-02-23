@@ -20,7 +20,7 @@ import com.downfall.app.models.entity.UserCustom;
 
 // Implementa la interfaz UserDetailsService (por esto no utiliza una interfaz user) 
 @Service
-public class UserCustomService implements UserDetailsService{
+public class UserCustomService implements UserDetailsService, IUserCustomService{
 
 	@Autowired
 	private IUserCustomDao userDao;
@@ -49,5 +49,12 @@ public class UserCustomService implements UserDetailsService{
 		
 		// Retorna user de spring security
 		return new User(user.getUsername(), user.getPassword(), user.getEnabled(), true, true, true, authorities);
+	}
+
+	// Consulta personalizada
+	@Override
+	@Transactional(readOnly=true)
+	public UserCustom findByUsername(String username) {
+		return userDao.findByUsername(username);
 	}
 }

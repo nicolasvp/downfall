@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -47,8 +48,9 @@ public class GenreController {
 		return genreService.findAll();
 	}
 
-	// Se utiliza responseEntity para validar si existe el genero segun el id, si no
-	// existe entonces retorna un mensaje de error
+	// Se utiliza responseEntity para validar si existe el genero segun el id, si no existe entonces retorna un mensaje de error
+	// Se define el acceso solo a roles admin y user
+	@Secured({"ROLE_ADMIN", "ROLE_USER"})
 	@GetMapping("/genres/{id}")
 	public ResponseEntity<?> show(@PathVariable Long id) {
 
@@ -75,6 +77,7 @@ public class GenreController {
 	}
 
 	// Con la notacion @Valid se pasa el requestBody por validaciones y se guardan los resultados en la variable result
+	@Secured("ROLE_ADMIN")
 	@PostMapping("/genres")
 	public ResponseEntity<?> create(@Valid @RequestBody Genre genre, BindingResult result) {
 
@@ -109,6 +112,7 @@ public class GenreController {
 	}
 
 	// Con la notacion @Valid se pasa el requestBody por validaciones y se guardan los resultados en la variable result
+	@Secured("ROLE_ADMIN")
 	@PutMapping("/genres/{id}")
 	public ResponseEntity<?> update(@Valid @RequestBody Genre genre, BindingResult result, @PathVariable Long id) {
 		
@@ -151,6 +155,7 @@ public class GenreController {
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 	}
 
+	@Secured("ROLE_ADMIN")
 	@DeleteMapping("/genres/{id}")
 	public ResponseEntity<?> delete(@PathVariable Long id) {
 		

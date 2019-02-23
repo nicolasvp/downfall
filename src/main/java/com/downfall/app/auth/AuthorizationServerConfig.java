@@ -1,5 +1,7 @@
 package com.downfall.app.auth;
 
+import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -11,6 +13,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.A
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.token.TokenEnhancerChain;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
@@ -26,6 +29,9 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 	@Qualifier("authenticationManager")
 	private AuthenticationManager authenticationManager;
 
+	@Autowired
+	private AdditionalTokenInfo additionalTokenInfo;
+	
 	@Override
 	public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
 		
@@ -49,10 +55,14 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 	@Override
 	public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
 		
+		TokenEnhancerChain tokenEnhancerChain = new TokenEnhancerChain();
+		tokenEnhancerChain.setTokenEnhancers(Arrays.asList(additionalTokenInfo, accessTokenConverter()));
+		
 		// Traduce los datos del token
 		endpoints.authenticationManager(authenticationManager)
 		.tokenStore(tokenStore())
-		.accessTokenConverter(accessTokenConverter());
+		.accessTokenConverter(accessTokenConverter())
+		.tokenEnhancer(tokenEnhancerChain);
 	}
 
 	// Guarda el token
@@ -67,6 +77,10 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 		
 		JwtAccessTokenConverter jwtAccessTokenConverter = new JwtAccessTokenConverter();
 		
+		// Asigna clave secreta para generar la firma del token
+		jwtAccessTokenConverter.setSigningKey(JwtConfig.PRIVATE_RSA_KEY);
+		// Asigna clave secreta para verificar el token
+		jwtAccessTokenConverter.setVerifierKey(JwtConfig.PUBLIC_RSA_KEY);
 		return jwtAccessTokenConverter;
 	}
 	
