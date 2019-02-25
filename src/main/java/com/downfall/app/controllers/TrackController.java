@@ -14,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -46,17 +47,20 @@ public class TrackController {
 	@Autowired
 	private ITrackService trackService;
 	
+	@Secured({"ROLE_ADMIN", "ROLE_USER"})
 	@GetMapping("/tracks")
 	public List<Track> index(){
 		return trackService.findAll();
 	}
 	
+	@Secured({"ROLE_ADMIN", "ROLE_USER"})
 	@GetMapping("/tracks/page/{page_number}")
 	public Page<Track> index(@PathVariable Integer page_number){
 		Pageable pageable = PageRequest.of(page_number, 4);
 		return trackService.findAll(pageable);
 	}
 	
+	@Secured({"ROLE_ADMIN", "ROLE_USER"})
 	@GetMapping("/tracks/{id}")
 	public ResponseEntity<?> show(@PathVariable Long id) {
 		
@@ -82,6 +86,7 @@ public class TrackController {
 		return new ResponseEntity<Track>(track, HttpStatus.OK);
 	}
 	
+	@Secured("ROLE_ADMIN")
 	@PostMapping("/tracks")
 	public ResponseEntity<?> create(@Valid @RequestBody Track track, BindingResult result) {
 		
@@ -114,6 +119,7 @@ public class TrackController {
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 	}
 	
+	@Secured("ROLE_ADMIN")
 	@PutMapping("/tracks/{id}")
 	public ResponseEntity<?> update(@Valid @RequestBody Track track, BindingResult result, @PathVariable Long id) {
 		
@@ -157,6 +163,7 @@ public class TrackController {
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 	}
 	
+	@Secured("ROLE_ADMIN")
 	@DeleteMapping("/tracks/{id}")
 	public ResponseEntity<?> delete(@PathVariable Long id) {
 		

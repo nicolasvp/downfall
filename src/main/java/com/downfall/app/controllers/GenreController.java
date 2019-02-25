@@ -1,5 +1,7 @@
 package com.downfall.app.controllers;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,7 +10,9 @@ import java.util.stream.Collectors;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -21,11 +25,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.downfall.app.models.entity.Artist;
 import com.downfall.app.models.entity.Genre;
 import com.downfall.app.models.services.IGenreService;
+import com.downfall.app.models.services.IUploadService;
 
 /*
  * Acá se manejan las rutas y se asocian a metodos
@@ -43,6 +51,10 @@ public class GenreController {
 	@Autowired
 	private IGenreService genreService;
 
+	@Autowired
+	private IUploadService uploadService;
+	
+	@Secured({"ROLE_ADMIN", "ROLE_USER"})
 	@GetMapping("/genres")
 	public List<Genre> index() {
 		return genreService.findAll();
@@ -173,5 +185,70 @@ public class GenreController {
 
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
 
+	}
+	
+	@Secured("ROLE_ADMIN")
+	// Metodo para subir archivo de imagen para el artista
+	@PostMapping("/genres/upload")
+	public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file, @RequestParam("id") Long id){
+		Map<String, Object> response = new HashMap<>();
+		
+		Genre genre = genreService.findById(id);
+		
+		String fileName = null;
+		
+		if(!file.isEmpty()) {
+			try {
+				// Copia el archivo que se ha subido al directorio de uploads
+				fileName = uploadService.save(file, "genres");
+				
+			} catch (IOException e) {
+				response.put("msg", "Error al intentar subir la imagen ");
+				response.put("error", e.getMessage().concat(": ").concat(e.getCause().getMessage()));
+				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR); 
+			}
+			
+			// Elimina la foto anterior(si es que tiene)
+			String fileNameBefore = genre.getImage();
+			
+			uploadService.delete(fileNameBefore, "artists");
+			
+			genre.setImage(fileName);
+			
+			genreService.save(genre);
+			
+			response.put("artist", genre);
+			response.put("msg", "Se ha subido la imagen con éxito");
+			
+		}
+		
+		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
+	}
+	
+	@Secured({"ROLE_ADMIN", "ROLE_USER"})
+	// Muestra el archivo foto del genero
+	// En la URL se utiliza una regexp indicando que contendra un nombre y una extension(.+)
+	@GetMapping("uploads/genres/img/{fileName:.+}")
+	public ResponseEntity<Resource> showFile(@PathVariable String fileName){
+	
+		Resource resource = null;
+		
+		try {
+			resource = uploadService.load(fileName, "genres");
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Validación para el archivo, si no existe y no es accesible
+		if(!resource.exists() && !resource.isReadable()) {
+			throw new RuntimeException("Error al intentar cargar la imagen: "+ fileName);
+		}
+		
+		// Se crea una cabecera para forzar a la descarga de la imagen
+		HttpHeaders header = new HttpHeaders();
+		header.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"");
+		
+		return new ResponseEntity<Resource>(resource, header, HttpStatus.OK);
 	}
 }

@@ -15,6 +15,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -51,11 +52,13 @@ public class AlbumController {
 	@Autowired
 	private IUploadService uploadService;
 	
+	@Secured({"ROLE_ADMIN", "ROLE_USER"})
 	@GetMapping("/albums")
 	public List<Album> index(){
 		return albumService.findAll();
 	}
 	
+	@Secured({"ROLE_ADMIN", "ROLE_USER"})
 	@GetMapping("/albums/{id}")
 	public ResponseEntity<?> show(@PathVariable Long id) {
 		
@@ -81,6 +84,7 @@ public class AlbumController {
 		return new ResponseEntity<Album>(album, HttpStatus.OK);
 	}
 	
+	@Secured("ROLE_ADMIN")
 	@PostMapping("/albums")
 	public ResponseEntity<?> create(@Valid @RequestBody Album album, BindingResult result) {
 		
@@ -113,6 +117,7 @@ public class AlbumController {
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 	}
 	
+	@Secured("ROLE_ADMIN")
 	@PutMapping("/albums/{id}")
 	public ResponseEntity<?> update(@Valid @RequestBody Album album, BindingResult result, @PathVariable Long id) {
 		
@@ -156,6 +161,7 @@ public class AlbumController {
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 	}
 	
+	@Secured("ROLE_ADMIN")
 	@DeleteMapping("/albums/{id}")
 	public ResponseEntity<?> delete(@PathVariable Long id) {
 		
@@ -168,7 +174,7 @@ public class AlbumController {
 			// Elimina la foto anterior(si es que tiene)
 			String fileNameBefore = album.getImage();
 			
-			uploadService.delete(fileNameBefore);
+			uploadService.delete(fileNameBefore, "albums");
 			
 			albumService.delete(id);
 		} catch (DataAccessException e) {
@@ -182,6 +188,7 @@ public class AlbumController {
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
 	}
 	
+	@Secured("ROLE_ADMIN")
 	// Metodo para subir archivo de imagen para el album
 	@PostMapping("/albums/upload")
 	public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file, @RequestParam("id") Long id){
@@ -194,7 +201,7 @@ public class AlbumController {
 		if(!file.isEmpty()) {
 			try {
 				// Copia el archivo que se ha subido al directorio de uploads
-				fileName = uploadService.save(file);
+				fileName = uploadService.save(file, "albums");
 				
 			} catch (IOException e) {
 				response.put("msg", "Error al intentar subir la imagen ");
@@ -205,7 +212,7 @@ public class AlbumController {
 			// Elimina la foto anterior(si es que tiene)
 			String fileNameBefore = album.getImage();
 			
-			uploadService.delete(fileNameBefore);
+			uploadService.delete(fileNameBefore, "albums");
 			
 			album.setImage(fileName);
 			
@@ -219,15 +226,16 @@ public class AlbumController {
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 	}
 	
+	@Secured({"ROLE_ADMIN", "ROLE_USER"})
 	// Muestra el archivo foto del album
 	// En la URL se utiliza una regexp indicando que contendra un nombre y una extension(.+)
-	@GetMapping("uploads/img/{fileName:.+}")
+	@GetMapping("uploads/albums/img/{fileName:.+}")
 	public ResponseEntity<Resource> showFile(@PathVariable String fileName){
 	
 		Resource resource = null;
 		
 		try {
-			resource = uploadService.load(fileName);
+			resource = uploadService.load(fileName, "albums");
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

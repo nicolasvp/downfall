@@ -30,10 +30,10 @@ public class IUploadServiceImpl implements IUploadService{
 	private final static String PATH_DIRECTORY = "uploads";
 	
 	@Override
-	public Resource load(String fileName) throws MalformedURLException {
+	public Resource load(String fileName, String directory) throws MalformedURLException {
 		// Se obtiene la ruta al directorio que se creo(no estará dentro del paquete war o jar al hacer el deploy) uploads
 		// Se debe colocar la ruta completa
-		Path pathFile = getPath(fileName);
+		Path pathFile = getPath(fileName, directory);
 		
 		// Log para imprimir en consola la ruta de la imagen
 		log.info(pathFile.toString());
@@ -49,14 +49,14 @@ public class IUploadServiceImpl implements IUploadService{
 	}
 
 	@Override
-	public String save(MultipartFile file) throws IOException {
+	public String save(MultipartFile file, String directory) throws IOException {
 		
 		// Se obtiene el nombre del archivo, se concatena un string aleatorio para evitar el choque de nombre y se quitan los espacios en blanco
 		String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename().replace(" ", "");
 		
 		// Se obtiene la ruta al directorio que se creo(no estará dentro del paquete war o jar al hacer el deploy) uploads
 		// Se debe colocar la ruta completa
-		Path pathFile = getPath(fileName);
+		Path pathFile = getPath(fileName, directory);
 		
 		// Log para imprimir en consola la ruta de la imagen
 		log.info(pathFile.toString());
@@ -68,12 +68,12 @@ public class IUploadServiceImpl implements IUploadService{
 	}
 
 	@Override
-	public Boolean delete(String fileName) {
+	public Boolean delete(String fileName, String directory) {
 		
 		// Elimina la foto anterior(si es que tiene)
 		if(fileName != null && fileName.length() > 0) {
 			// Se obtiene la ruta de la foto anterior
-			Path pathFileBefore = getPath(fileName);
+			Path pathFileBefore = getPath(fileName, directory);
 			
 			// Se convierte en archivo la foto anterior
 			File fileBefore = pathFileBefore.toFile();
@@ -91,8 +91,8 @@ public class IUploadServiceImpl implements IUploadService{
 	}
 
 	@Override
-	public Path getPath(String fileName) {
-		return Paths.get(PATH_DIRECTORY).resolve(fileName).toAbsolutePath();
+	public Path getPath(String fileName, String directory) {
+		return Paths.get(PATH_DIRECTORY.concat("/".concat(directory))).resolve(fileName).toAbsolutePath();
 	}
 
 }
